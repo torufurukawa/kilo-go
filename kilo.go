@@ -10,12 +10,10 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-var state *terminal.State
-
 func main() {
 	err := enableRawMode()
 	if err != nil {
-		panic(err)
+		die(err)
 	}
 	defer disableRawMode()
 
@@ -24,7 +22,7 @@ func main() {
 		n, err := os.Stdin.Read(b)
 		// EOF or error
 		if n != 1 || err != nil {
-			break
+			die(err)
 		}
 
 		// quit
@@ -42,6 +40,12 @@ func main() {
 	}
 }
 
+//
+// terminal
+//
+
+var state *terminal.State
+
 func enableRawMode() error {
 	var err error
 	state, err = terminal.MakeRaw(0)
@@ -50,4 +54,9 @@ func enableRawMode() error {
 
 func disableRawMode() {
 	terminal.Restore(0, state)
+}
+
+func die(err error) {
+	fmt.Fprintln(os.Stderr, err)
+	os.Exit(1)
 }
