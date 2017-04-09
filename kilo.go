@@ -1,7 +1,11 @@
 package main
 
 import (
+	"bytes"
+	"fmt"
 	"os"
+
+	"unicode"
 
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -26,6 +30,14 @@ func main() {
 		// quit
 		if b[0] == 'q' {
 			break
+		}
+
+		// print
+		c := bytes.Runes(b)[0]
+		if unicode.IsControl(c) {
+			fmt.Printf("%d\r\n", c)
+		} else {
+			fmt.Printf("%d ('%c')\r\n", c, c)
 		}
 	}
 }
