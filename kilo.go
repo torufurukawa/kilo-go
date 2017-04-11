@@ -13,8 +13,13 @@ func main() {
 	enableRawMode()
 	defer disableRawMode()
 
+	_, h, err := terminal.GetSize(0)
+	if err != nil {
+		die(err)
+	}
+
 	for {
-		editorRefreshScreen()
+		editorRefreshScreen(h)
 		if quit := editorProcessKeypress(); quit {
 			break
 		}
@@ -69,23 +74,23 @@ func editorProcessKeypress() (quit bool) {
 
 // output
 
-func editorRefreshScreen() {
-	os.Stdout.WriteString("\x1b[2J")
-	os.Stdout.WriteString("\x1b[H")
-	editorDrawRows()
-	os.Stdout.WriteString("\x1b[H")
+func editorRefreshScreen(height int) {
+	buffer := make([]byte, 0)
+
+	buffer = append(buffer, []byte("\x1b[2J")...)
+	buffer = append(buffer, []byte("\x1b[H")...)
+	editorDrawRows(&buffer, height)
+	buffer = append(buffer, []byte("\x1b[H")...)
+
+	os.Stdout.Write(buffer)
 }
 
-func editorDrawRows() {
-	_, h, err := terminal.GetSize(0)
-	if err != nil {
-		die(err)
-	}
-	for y := 0; y < h; y++ {
-		os.Stdout.WriteString("~")
+func editorDrawRows(buffer *[]byte, height int) {
+	for y := 0; y < height; y++ {
+		*buffer = append(*buffer, '~')
 
-		if y < h-1 {
-			os.Stdout.WriteString("\r\n")
+		if y < height-1 {
+			*buffer = append(*buffer, []byte("\r\n")...)
 		}
 	}
 }
