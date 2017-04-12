@@ -77,18 +77,27 @@ func editorProcessKeypress() (quit bool) {
 func editorRefreshScreen(height int) {
 	buffer := make([]byte, 0)
 
-	buffer = append(buffer, []byte("\x1b[2J")...)
+	buffer = append(buffer, []byte("\x1b[?25l")...)
 	buffer = append(buffer, []byte("\x1b[H")...)
+
 	editorDrawRows(&buffer, height)
+
 	buffer = append(buffer, []byte("\x1b[H")...)
+	buffer = append(buffer, []byte("\x1b[?25h")...)
 
 	os.Stdout.Write(buffer)
 }
 
 func editorDrawRows(buffer *[]byte, height int) {
 	for y := 0; y < height; y++ {
-		*buffer = append(*buffer, '~')
+		if y == height/3 {
+			// TODO: parameterizse version
+			*buffer = append(*buffer, []byte("Kilo editor -- version 0.0.1")...)
+		} else {
+			*buffer = append(*buffer, '~')
+		}
 
+		*buffer = append(*buffer, []byte("\x1b[K")...)
 		if y < height-1 {
 			*buffer = append(*buffer, []byte("\r\n")...)
 		}
