@@ -4,22 +4,33 @@ import (
 	"fmt"
 	"os"
 
+	"strings"
+
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-const ctrlQ byte = 'q' & 0x1f
+const (
+	ctrlQ   byte   = 'q' & 0x1f
+	version string = "0.0.1"
+)
+
+type screen struct {
+	Width  int
+	Height int
+}
 
 func main() {
 	enableRawMode()
 	defer disableRawMode()
 
-	_, h, err := terminal.GetSize(0)
+	w, h, err := terminal.GetSize(0)
 	if err != nil {
 		die(err)
 	}
+	s := &screen{Width: w, Height: h}
 
 	for {
-		editorRefreshScreen(h)
+		editorRefreshScreen(s)
 		if quit := editorProcessKeypress(); quit {
 			break
 		}
@@ -74,13 +85,13 @@ func editorProcessKeypress() (quit bool) {
 
 // output
 
-func editorRefreshScreen(height int) {
+func editorRefreshScreen(s *screen) {
 	buffer := make([]byte, 0)
 
 	buffer = append(buffer, []byte("\x1b[?25l")...)
 	buffer = append(buffer, []byte("\x1b[H")...)
 
-	editorDrawRows(&buffer, height)
+	editorDrawRows(&buffer, s)
 
 	buffer = append(buffer, []byte("\x1b[H")...)
 	buffer = append(buffer, []byte("\x1b[?25h")...)
@@ -88,17 +99,23 @@ func editorRefreshScreen(height int) {
 	os.Stdout.Write(buffer)
 }
 
-func editorDrawRows(buffer *[]byte, height int) {
-	for y := 0; y < height; y++ {
-		if y == height/3 {
-			// TODO: parameterizse version
-			*buffer = append(*buffer, []byte("Kilo editor -- version 0.0.1")...)
+func editorDrawRows(buffer *[]byte, s *screen) {
+	for y := 0; y < s.Height; y++ {
+		if y == s.Height/3 {
+			message := fmt.Sprintf("Kilo editor -- version %s", version)
+			if s.Width < len(message) {
+				message = message[:s.Width]
+			}
+			*buffer = append(*buffer, '~')
+			padding := strings.Repeat(" ", (s.Width-len(message))/2)
+			*buffer = append(*buffer, padding...)
+			*buffer = append(*buffer, []byte(message)...)
 		} else {
 			*buffer = append(*buffer, '~')
 		}
 
 		*buffer = append(*buffer, []byte("\x1b[K")...)
-		if y < height-1 {
+		if y < s.Height-1 {
 			*buffer = append(*buffer, []byte("\r\n")...)
 		}
 	}
