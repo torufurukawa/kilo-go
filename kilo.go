@@ -17,6 +17,8 @@ const (
 type screen struct {
 	Width  int
 	Height int
+	CX     int
+	CY     int
 }
 
 func main() {
@@ -27,11 +29,11 @@ func main() {
 	if err != nil {
 		die(err)
 	}
-	s := &screen{Width: w, Height: h}
+	s := &screen{Width: w, Height: h, CX: 0, CY: 0}
 
 	for {
 		editorRefreshScreen(s)
-		if quit := editorProcessKeypress(); quit {
+		if quit := editorProcessKeypress(s); quit {
 			break
 		}
 	}
@@ -73,11 +75,19 @@ func editorReadKey() byte {
 
 // input
 
-func editorProcessKeypress() (quit bool) {
+func editorProcessKeypress(s *screen) (quit bool) {
 	c := editorReadKey()
 	switch c {
 	case ctrlQ:
 		return true
+	case 'a':
+		s.CX--
+	case 'd':
+		s.CX++
+	case 'w':
+		s.CY--
+	case 's':
+		s.CY++
 	}
 
 	return false
@@ -93,7 +103,9 @@ func editorRefreshScreen(s *screen) {
 
 	editorDrawRows(&buffer, s)
 
-	buffer = append(buffer, []byte("\x1b[H")...)
+	cursor := fmt.Sprintf("\x1b[%d;%dH", s.CY+1, s.CX+1)
+	buffer = append(buffer, []byte(cursor)...)
+
 	buffer = append(buffer, []byte("\x1b[?25h")...)
 
 	os.Stdout.Write(buffer)
