@@ -70,6 +70,31 @@ func editorReadKey() byte {
 	if n != 1 || err != nil {
 		die(err)
 	}
+
+	// arrow keys
+	if b[0] == '\x1b' {
+		seq := make([]byte, 2)
+		n, err := os.Stdin.Read(seq)
+		if n != 2 {
+			return '\x1b'
+		}
+		if err != nil {
+			die(err)
+		}
+		if seq[0] == '[' {
+			switch seq[1] {
+			case 'A':
+				return 'w'
+			case 'B':
+				return 's'
+			case 'C':
+				return 'd'
+			case 'D':
+				return 'a'
+			}
+		}
+	}
+
 	return b[0]
 }
 
