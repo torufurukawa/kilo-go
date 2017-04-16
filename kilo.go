@@ -10,8 +10,15 @@ import (
 )
 
 const (
-	ctrlQ   byte   = 'q' & 0x1f
-	version string = "0.0.1"
+	ctrlQ   = 'q' & 0x1f
+	version = "0.0.1"
+)
+
+const (
+	arrowLeft = iota + 1000
+	arrowRight
+	arrowUp
+	arrowDown
 )
 
 type screen struct {
@@ -63,7 +70,7 @@ func die(err error) {
 	os.Exit(1)
 }
 
-func editorReadKey() byte {
+func editorReadKey() int {
 	b := make([]byte, 1)
 	n, err := os.Stdin.Read(b)
 	// EOF or error
@@ -84,18 +91,18 @@ func editorReadKey() byte {
 		if seq[0] == '[' {
 			switch seq[1] {
 			case 'A':
-				return 'w'
+				return arrowUp
 			case 'B':
-				return 's'
+				return arrowDown
 			case 'C':
-				return 'd'
+				return arrowRight
 			case 'D':
-				return 'a'
+				return arrowLeft
 			}
 		}
 	}
 
-	return b[0]
+	return int(b[0])
 }
 
 // input
@@ -105,13 +112,13 @@ func editorProcessKeypress(s *screen) (quit bool) {
 	switch c {
 	case ctrlQ:
 		return true
-	case 'a':
+	case arrowLeft:
 		s.CX--
-	case 'd':
+	case arrowRight:
 		s.CX++
-	case 'w':
+	case arrowUp:
 		s.CY--
-	case 's':
+	case arrowDown:
 		s.CY++
 	}
 
