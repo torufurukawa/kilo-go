@@ -113,7 +113,9 @@ func editorProcessKeypress(s *screen) (quit bool) {
 	case ctrlQ:
 		return true
 	case arrowLeft:
-		s.CX--
+		if s.CX > 0 {
+			s.CX--
+		}
 	case arrowRight:
 		s.CX++
 	case arrowUp:
