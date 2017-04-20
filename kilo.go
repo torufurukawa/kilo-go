@@ -113,15 +113,21 @@ func editorProcessKeypress(s *screen) (quit bool) {
 	case ctrlQ:
 		return true
 	case arrowLeft:
-		if s.CX > 0 {
+		if s.CX != 0 {
 			s.CX--
 		}
 	case arrowRight:
-		s.CX++
+		if s.CX != s.Width {
+			s.CX++
+		}
 	case arrowUp:
-		s.CY--
+		if s.CY != 0 {
+			s.CY--
+		}
 	case arrowDown:
-		s.CY++
+		if s.CY != s.Height {
+			s.CY++
+		}
 	}
 
 	return false
